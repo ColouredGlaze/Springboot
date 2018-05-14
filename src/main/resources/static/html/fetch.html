@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- 先引入 Vue -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-default/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <title>Title</title>
+</head>
+<body>
+<div id="getFetchConnection">
+    {{state}}
+</div>
+</body>
+<script>
+    var getConnection = new Vue({
+        el:"#getFetchConnection",
+        data:{
+            state:"noConnection"
+        },
+        created: function () {
+            console.log("created")
+            let thisVue = this
+            var result = fetch('/fetch/getConnection?message=mounted')
+
+            result.then(function(response) {
+                return response.json()
+            }).then(function (stories) {
+                console.log(stories);
+                thisVue.state = stories;
+
+            }).catch(function(ex) {
+                console.log('failed', ex)
+            })
+        }
+    })
+</script>
+</html>

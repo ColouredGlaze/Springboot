@@ -1,0 +1,52 @@
+从Spring 3.0开始，增加了一种新的途径来配置Bean Definition，这就是通过Java Code配置Bean Definition。
+
+       与XML和Annotation两种配置方式不同点在于：
+
+       前两种方式XML和Annotation的配置方式为预定义方式，
+       即开发人员通过XML文件或者Annotation预定义配置Bean的各种属性后，启动Spring容器，
+       Spring容器会首先解析这些配置属性，生成对应的Bean Definition,
+       装入到DefaultListtableBeanFactory对象的属性容器中，与此同时，
+       Spring框架也会定义内部使用的Bean定义，
+       如Bean名为：org.springframework.context.annotation.internalConfigurationAnnotationProcessor”
+       的 ConfigurationClassPostProcessor 定义。而后此刻不会做任何Bean Definition的解析动作，
+       Spring框架会根据前两种配置，过滤出BeanDefinitionRegistryPostProcessor 类型的Bean定义，
+       并通过Spring框架生成对应的Bean对象（如 ConfigurationClassPostProcessor 实例）。。
+       结合 Spring 上下文源码可知这个对象是一个 processor 类型工具类，
+       Spring 容器会在实例化开发人员所定义的 Bean 前先调用该 processor
+       的 postProcessBeanDefinitionRegistry(…) 方法。
+       此处实现基于 Java Code 配置Bean Definition的处理。
+
+
+
+       基于 Java Code 的配置方式，其执行原理不同于前两种。
+       它是在 Spring 框架已经解析了基于 XML 和 Annotation 配置后，
+       通过加入 BeanDefinitionRegistryPostProcessor 类型的 processor 来处理配置信息，
+       让开发人员通过 Java 编程方式定义一个 Java 对象。其优点在于可以将配置信息集中在一定数量的
+       Java 对象中，同时通过 Java 编程方式，比基于 Annotation 方式具有更高的灵活性。
+       并且该配置方式给开发人员提供了一种非常好的范例来增加用户自定义的解析工具类。
+       其主要缺点在于与 Java 代码结合紧密，配置信息的改变需要重新编译 Java 代码，
+       另外这是一种新引入的解析方式，需要一定的学习成本。
+
+
+
+提及一点的就是，Spring框架有3个主要的Hook类，分别是：
+
+org.springframework.context.ApplicationContextAware
+它的setApplicationContext 方法将在Spring启动之前第一个被调用。我们用来同时启动Jdon框架。
+
+org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor
+它的postProcessBeanDefinitionRegistry 和 postProcessBeanFactory 方法是第二和第三被调用，
+它们在Bean初始化创建之前启动，如果Spring的bean需要的其他第三方中的组件，
+我们在这里将其注入给Spring。
+
+org.springframework.context.ApplicationListener
+用于在初始化完成后做一些事情，当Spring所有XML或元注解的Bean都启动被创建成功了，
+这时会调用它的唯一方法onApplicationEvent。
+
+
+下面我们来完成一个，自己通过java代码创建bean，并注册为Spring管理。
+<!--[if !supportLineBreakNewLine]-->
+<!--[endif]-->
+
+本例中，我们创建一个接口，然后创建该接口的2个实现类，分别命名不同的名字，
+然后在需要注入的地方使用@Qualifier 指定注入对应的实例。
